@@ -4,11 +4,8 @@
  */
 
 class modDevTools {
-	/** @var modX $modx */
+	/* @var modX $modx */
 	public $modx;
-
-    /** @var array $perms Permissions  */
-    protected $perms = array();
 
 
 	/**
@@ -44,13 +41,18 @@ class modDevTools {
 	}
 
     /**
+     * Outputs the JavaScript needed to add a tab to the panels.
      *
+     * @param string $class
+     * @return bool
      */
-    public function initializeTabs() {
+    public function outputTab($class) {
         $this->modx->controller->addLexiconTopic('moddevtools:default');
         $this->modx->controller->addCss($this->config['cssUrl'] . 'mgr/main.css');
         $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/moddevtools.js');
         $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/misc/utils.js');
+
+
 
         $this->modx->controller->addHtml('
             <script type="text/javascript">
@@ -67,21 +69,19 @@ class modDevTools {
             $this->modx->controller->addCss($this->config['cssUrl'] . 'mgr/bootstrap.buttons.css');
         }
 
+        $view_chunk = $this->modx->hasPermission('view_chunk');
+        $view_temp = $this->modx->hasPermission('view_template');
+        $view_snip = $this->modx->hasPermission('view_snippet');
+        $view_doc = $this->modx->hasPermission('resource_tree');
+
         $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/widgets/elements.panel.js');
         $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/widgets/chunks.panel.js');
         $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/widgets/snippets.panel.js');
         $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/widgets/resources.grid.js');
-
-        $this->perms['view_chunk'] = $this->modx->hasPermission('view_chunk');
-        $this->perms['view_temp'] = $this->modx->hasPermission('view_template');
-        $this->perms['view_snip'] = $this->modx->hasPermission('view_snippet');
-        $this->perms['view_doc'] = $this->modx->hasPermission('resource_tree');
-    }
-
-    public function outputTemplateTab() {
-        $this->modx->controller->addHtml("<script>
+        if ($class == 'Template') {
+            $this->modx->controller->addHtml("<script>
                 Ext.onReady(function() {
-                    " . ($this->perms['view_chunk'] ? "MODx.addTab('modx-template-tabs',{
+                    " . ($view_chunk ? "MODx.addTab('modx-template-tabs',{
                         title: _('chunks'),
                         id: 'moddevtools-template-chunks-tab',
                         width: '100%',
@@ -90,7 +90,7 @@ class modDevTools {
                             xtype: 'moddevtools-panel-chunks'
                         }]
                     });" : "") . "
-                    " . ($this->perms['view_snip'] ? "MODx.addTab('modx-template-tabs',{
+                    " . ($view_snip ? "MODx.addTab('modx-template-tabs',{
                         title: _('snippets'),
                         id: 'moddevtools-template-snippets-tab',
                         width: '100%',
@@ -99,7 +99,7 @@ class modDevTools {
                             xtype: 'moddevtools-panel-snippets'
                         }]
                     });" : "") . "
-                    " . ($this->perms['view_doc'] ? "MODx.addTab('modx-template-tabs',{
+                    " . ($view_doc ? "MODx.addTab('modx-template-tabs',{
                         title: _('resources'),
                         id: 'moddevtools-template-resources-tab',
                         width: '100%',
@@ -114,13 +114,11 @@ class modDevTools {
                         }]
                     });" : "") . "
                 });</script>");
-    }
-
-    public function outputChunkTab() {
-        $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/widgets/templates.panel.js');
-        $this->modx->controller->addHtml("<script>
+        } else if ($class == 'Chunk') {
+            $this->modx->controller->addJavascript($this->config['jsUrl'] . 'mgr/widgets/templates.panel.js');
+            $this->modx->controller->addHtml("<script>
                 Ext.onReady(function() {
-                    " . ($this->perms['view_temp'] ? "MODx.addTab('modx-chunk-tabs',{
+                    " . ($view_temp ? "MODx.addTab('modx-chunk-tabs',{
                         title: _('templates'),
                         id: 'moddevtools-chunk-templates-tab',
                         width: '100%',
@@ -129,7 +127,7 @@ class modDevTools {
                             xtype: 'moddevtools-panel-templates'
                         }]
                     });" : "") . "
-                    " . ($this->perms['view_chunk'] ? "MODx.addTab('modx-chunk-tabs',{
+                    " . ($view_chunk ? "MODx.addTab('modx-chunk-tabs',{
                         title: _('chunks'),
                         id: 'moddevtools-chunk-chunks-tab',
                         width: '100%',
@@ -138,7 +136,7 @@ class modDevTools {
                             xtype: 'moddevtools-panel-chunks'
                         }]
                     });" : "") . "
-                    " . ($this->perms['view_snip'] ? "MODx.addTab('modx-chunk-tabs',{
+                    " . ($view_snip ? "MODx.addTab('modx-chunk-tabs',{
                         title: _('snippets'),
                         id: 'moddevtools-chunk-snippets-tab',
                         width: '100%',
@@ -147,7 +145,7 @@ class modDevTools {
                             xtype: 'moddevtools-panel-snippets'
                         }]
                     });" : "") . "
-                    " . ($this->perms['view_doc'] ? "MODx.addTab('modx-chunk-tabs',{
+                    " . ($view_doc ? "MODx.addTab('modx-chunk-tabs',{
                         title: _('resources'),
                         id: 'moddevtools-chunk-resources-tab',
                         width: '100%',
@@ -163,12 +161,10 @@ class modDevTools {
                         }]
                     });" : "") . "
                 });</script>");
-    }
-
-    public function outputSnippetTab() {
-        $this->modx->controller->addHtml("<script>
+        } else if ($class == 'Snippet') {
+            $this->modx->controller->addHtml("<script>
                 Ext.onReady(function() {
-                    " . ($this->perms['view_doc'] ? "MODx.addTab('modx-snippet-tabs',{
+                    " . ($view_doc ? "MODx.addTab('modx-snippet-tabs',{
                         title: _('resources'),
                         id: 'moddevtools-snippet-resources-tab',
                         width: '100%',
@@ -184,23 +180,6 @@ class modDevTools {
                         }]
                     });" : "") . "
                 });</script>");
-    }
-
-    /**
-     * Outputs the JavaScript needed to add a tab to the panels.
-     *
-     * @param string $class
-     * @return bool
-     */
-    public function outputTab($class) {
-        $this->initializeTabs();
-
-        if ($class == 'Template') {
-            $this->outputTemplateTab();
-        } else if ($class == 'Chunk') {
-            $this->outputChunkTab();
-        } else if ($class == 'Snippet') {
-            $this->outputSnippetTab();
         }
         return true;
     }
@@ -478,7 +457,7 @@ class modDevTools {
             }
 
             $crumbs[] = array(
-                'text' => $parent->get('pagetitle'),
+                'text' => strip_tags($parent->get('pagetitle')),
 			    'url' => '?a=' . $action . '&id=' . $parent->get('id')
             );
         }
@@ -495,7 +474,7 @@ class modDevTools {
         } else {
             $pagetitle = $resource->get('pagetitle');
         }
-        $crumbs[] = array('text' => $pagetitle);
+        $crumbs[] = array('text' => strip_tags($pagetitle));
 
         $crumbs = $this->modx->toJSON($crumbs);
 
